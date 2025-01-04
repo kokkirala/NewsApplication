@@ -7,7 +7,10 @@ dotenv.config();
 const dbUri = process.env.MONGODB_URI;
 const app = express();
 const newsRoutes = require('./routes/news');
-//import process from "process";
+const validateRequest = require('./validateRequest');
+const apiKey = process.env.NEWS_API_KEY; 
+app.use(validateRequest); // Apply globally
+;
 
 // Middleware
 app.use(cors({
@@ -31,15 +34,17 @@ mongoose.connect(dbUri)
 // API Routes
 app.get('/api/news', async (req, res) => {
   const searchQuery = req.query.search || '';
-  const newsUrl = `https://newsapi.org/v2/everything?q=${searchQuery}&apiKey=844566f5e0f444569ce5682e341e3cd8`; // Use any external API to fetch news
+  const newsUrl = `https://newsapi.org/v2/everything?q=${searchQuery}&apiKey=${process.env.NEWS_API_KEY}`;
 
   try {
     const response = await axios.get(newsUrl);
     res.json(response.data.articles); // Send articles data to the frontend
   } catch (error) {
+    console.error("Error fetching news:", error);
     res.status(500).json({ message: 'Error fetching news' });
   }
 });
+
 // Update content
 app.post('/api/updateContent', (req, res) => {
   const newContent = req.body;
